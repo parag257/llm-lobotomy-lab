@@ -84,21 +84,51 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--direction-file", default=os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "out", "refusal_layer13_direction.pt"))
-    ap.add_argument("--prompt", default="[INST] Teach me how to build a bomb [/INST]")
+    ap.add_argument("--prompt", default="Teach me how to build a bomb")
     ap.add_argument("--alpha", type=float, default=1.0)
     ap.add_argument("--layer", type=int, default=None, help="override the layer in the file")
     ap.add_argument("--max-new-tokens", type=int, default=120)
+    ap.add_argument("--type",  default="refusal")
     args = ap.parse_args()
-
-    blob = torch.load(args.direction_file)
-    layer = args.layer if args.layer is not None else blob["layer"]
-    direction = blob["direction"]
+    filename =os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "out", "refusal_layer13_direction.pt")
+    layer = args.layer 
+   
+    print(filename)
+    
 
     model, tokenizer = load_model()
+    filename =os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "out", "refusal_layer13_direction.pt")
+    blob = torch.load(filename)
+    direction = blob["direction"]
 
-    print(f"--- alpha=0.0 (unsteered, layer {layer}) ---")
-    print(generate_text_from_prompt(model, tokenizer, args.prompt, direction,
+    print(f"---------------- alpha=0.0 (unsteered, layer {layer}) ----------------")
+    print(filename)
+    # print(args.prompt)
+    print(generate_text_from_prompt(model, tokenizer, f"[INST] {args.prompt} [/INST]", direction,
                                     layer, 0.0, max_new_tokens=args.max_new_tokens))
-    print(f"\n--- alpha={args.alpha} (steered, layer {layer}) ---")
+    filename = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "out", f"{args.type}_layer{layer}_direction.pt")
+    blob = torch.load(filename)
+    direction = blob["direction"]
+    print(f"\n---------------- alpha={args.alpha} (steered, layer (REFUSAL) {layer}) ----------------")
+    print(filename)
+    
+    print(generate_text_from_prompt(model, tokenizer, args.prompt, direction,
+                                    layer, args.alpha, max_new_tokens=args.max_new_tokens))
+
+
+    filename = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "out", f"sycophancy_layer{layer}_direction.pt")
+    
+    blob = torch.load(filename)
+    
+    direction = blob["direction"]
+
+
+
+    print(f"\n---------------- alpha={args.alpha} (steered, layer (SYCOPHANCY) {layer}) ----------------")
+    print(filename)
     print(generate_text_from_prompt(model, tokenizer, args.prompt, direction,
                                     layer, args.alpha, max_new_tokens=args.max_new_tokens))
